@@ -27,14 +27,13 @@ class InsuranceDocExtractor:
     
     def pdf_to_images(self, path, dpi=300) -> List[Image.Image]:
         try:
-            images = convert_from_path(
-            path,
-            dpi=dpi,
-            fmt='png',       
-            thread_count=2,  
-            poppler_path=None )
-            self.logger.info(f"Converted PDF to {len(images)} images")
+            pdf = pypdfium2.PdfDocument(path)
+            images = []
+            for page in pdf:
+                pil_image = page.render(scale=dpi/72).to_pil()
+                images.append(pil_image)
             return images
+            
         except Exception as e:
             self.logger.error(f"Error converting PDF: {str(e)}")
             raise
@@ -222,7 +221,7 @@ class InsuranceDocExtractor:
             return {
                 "status": "error",
                 "error": str(e),
-                "model_used": "gemini-2.0-flash-exp",
+                "model_used": "gemini-2.0-flash",
                 "extracted_data": None
             }
 
