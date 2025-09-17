@@ -59,8 +59,5 @@ with st.expander("Extracted JSON"):
 json_bytes = BytesIO(json.dumps(extracted_data, indent=2, ensure_ascii=False).encode("utf-8"))
 st.download_button("Download Extracted JSON", data=json_bytes, file_name="extracted_data.json", mime="application/json")
 
-txt_bytes = BytesIO(ocr_text.encode("utf-8"))
-st.download_button("Download OCR Text", data=txt_bytes, file_name="ocr_text.txt", mime="text/plain")
-
 # Cleanup
 os.remove(temp_path)
