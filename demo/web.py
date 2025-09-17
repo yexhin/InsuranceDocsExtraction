@@ -47,9 +47,6 @@ with st.spinner("Performing OCR..."):
     ocr_text = extractor.ocr_chinese(images)
     st.success("OCR completed")
 
-with st.expander("OCR Extracted Text"):
-    st.text_area("OCR Text", value=ocr_text, height=300)
-
 # Extract structured data
 with st.spinner("Extracting structured data with Gemini..."):
     extracted_data = extractor.process_document(temp_path, dpi=300, use_ocr=True)["extracted_data"]
