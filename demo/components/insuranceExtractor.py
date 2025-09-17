@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 from pdf2image import convert_from_path
 import pypdfium2
-import Pillow
 from .preprocessor import preprocess_for_ocr
 import pytesseract
 import google.generativeai as genai
