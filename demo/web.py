@@ -1,17 +1,24 @@
 import streamlit as st
 import os
 import json
-from dotenv import load_dotenv
 from io import BytesIO
 from components.insuranceExtractor import InsuranceDocExtractor
 
 st.set_page_config(page_title="Medical Insurance Claim Extractor", layout="wide")
 st.title("Medical Insurance Claim Extractor")
 
-# Load API key from .env
-load_dotenv()
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "key/gen-lang-client-0317182817-17975f8e6ac0.json"
-api_key = os.getenv("GOOGLE_API_KEY")
+# Lấy API key từ secrets
+api_key = st.secrets["google"]["GOOGLE_API_KEY"]
+
+# Tạo file credential tạm thời từ secret
+cred_json = json.loads(st.secrets["google"]["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+cred_path = "temp_credentials.json"
+with open(cred_path, "w", encoding="utf-8") as f:
+    json.dump(cred_json, f)
+
+# Trỏ biến môi trường
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_path
+
 if not api_key:
     st.error("GEMINI_API_KEY not found in environment variables.")
     st.stop()
