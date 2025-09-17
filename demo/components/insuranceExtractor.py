@@ -10,6 +10,8 @@ from PIL import Image
 import numpy as np
 import pandas as pd
 from pdf2image import convert_from_path
+import pypdfium2
+import Pillow
 from .preprocessor import preprocess_for_ocr
 import pytesseract
 import google.generativeai as genai
@@ -26,8 +28,12 @@ class InsuranceDocExtractor:
     
     def pdf_to_images(self, path, dpi=300) -> List[Image.Image]:
         try:
-            images = convert_from_path(path, dpi=dpi,
-                                       poppler_path=r"D:\Release-24.07.0-0\poppler-24.07.0\Library\bin")
+            images = convert_from_path(
+            path,
+            dpi=dpi,
+            fmt='png',       
+            thread_count=2,  
+            poppler_path=None )
             self.logger.info(f"Converted PDF to {len(images)} images")
             return images
         except Exception as e:
