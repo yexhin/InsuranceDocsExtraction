@@ -1,0 +1,62 @@
+import streamlit as st
+import os
+import json
+from dotenv import load_dotenv
+from io import BytesIO
+from components.insuranceExtractor import InsuranceDocExtractor
+
+st.set_page_config(page_title="Medical Insurance Claim Extractor", layout="wide")
+st.title("Medical Insurance Claim Extractor")
+
+# Load API key from .env
+load_dotenv()
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "key/gen-lang-client-0317182817-17975f8e6ac0.json"
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    st.error("GEMINI_API_KEY not found in environment variables.")
+    st.stop()
+
+# Upload PDF
+uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+if uploaded_file is None:
+    st.info("Upload a PDF file to start extraction.")
+    st.stop()
+
+# Save temp PDF
+temp_path = "temp_uploaded.pdf"
+with open(temp_path, "wb") as f:
+    f.write(uploaded_file.getbuffer())
+
+# Initialize extractor
+extractor = InsuranceDocExtractor(gemini_api_key=api_key)
+
+# Convert PDF → images
+with st.spinner("Converting PDF to images..."):
+    images = extractor.pdf_to_images(temp_path, dpi=300)
+    st.success(f"PDF converted to {len(images)} pages")
+
+# OCR
+with st.spinner("Performing OCR..."):
+    ocr_text = extractor.ocr_chinese(images)
+    st.success("OCR completed")
+
+with st.expander("OCR Extracted Text"):
+    st.text_area("OCR Text", value=ocr_text, height=300)
+
+# Extract structured data
+with st.spinner("Extracting structured data with Gemini..."):
+    extracted_data = extractor.process_document(temp_path, dpi=300, use_ocr=True)["extracted_data"]
+    st.success("Extraction completed")
+
+with st.expander("Extracted JSON"):
+    st.json(extracted_data)
+
+# Download options
+json_bytes = BytesIO(json.dumps(extracted_data, indent=2, ensure_ascii=False).encode("utf-8"))
+st.download_button("Download Extracted JSON", data=json_bytes, file_name="extracted_data.json", mime="application/json")
+
+txt_bytes = BytesIO(ocr_text.encode("utf-8"))
+st.download_button("Download OCR Text", data=txt_bytes, file_name="ocr_text.txt", mime="text/plain")
+
+# Cleanup
+os.remove(temp_path)
